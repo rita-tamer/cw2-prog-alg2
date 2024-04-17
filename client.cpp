@@ -13,7 +13,7 @@ void receive_messages(SOCKET sock) {
         memset(buffer, 0, sizeof(buffer));
         int bytesReceived = recv(sock, buffer, sizeof(buffer), 0);
         if (bytesReceived > 0) {
-            std::cout << std::string(buffer, 0, bytesReceived) << std::endl;
+            std::cout << buffer << std::endl;
         } else {
             std::cout << "Server disconnected." << std::endl;
             break;
@@ -22,11 +22,9 @@ void receive_messages(SOCKET sock) {
 }
 
 int main() {
-    // Initialize Winsock
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    // Create socket
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET) {
         std::cerr << "Socket creation failed with error: " << WSAGetLastError() << std::endl;
@@ -34,7 +32,6 @@ int main() {
         return 1;
     }
 
-    // Connect to server
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -46,19 +43,15 @@ int main() {
         return 1;
     }
 
-    // Send client name to server
-    std::cout << "Connected to server. Enter your name: ";
-    std::string name;
-    std::getline(std::cin, name);
-    send(sock, name.c_str(), name.length(), 0);
-
-    // Start receiving messages from server
     std::thread recvThread(receive_messages, sock);
     recvThread.detach();
 
-    // Send messages to server
     std::string input;
-    while (std::getline(std::cin, input)) {
+    // Get user choice and credentials
+    getline(std::cin, input);
+    send(sock, input.c_str(), input.length(), 0);
+
+    while (getline(std::cin, input)) {
         send(sock, input.c_str(), input.length(), 0);
     }
 
