@@ -7,11 +7,13 @@
 #include <mutex>
 #include <sstream>
 #include <cctype>
+#include "Crypto.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #define PORT "8080"
 #define MAX_CLIENTS 100
 
+Crypto myCrypto;
 std::mutex connections_mutex;
 
 struct Client {
@@ -166,15 +168,18 @@ void handle_client(int clientIndex) {
             std::cout << "Client disconnected: " << name << std::endl;
             break;
         }
-        std::string message = name + ": " + std::string(buffer, bytes_received);
-        std::cout << message << std::endl;
+        std::cout << std::endl;
+        // Decrypt the message
+        std::string message = clients[clientIndex].name + ": " + message;
         broadcast_message(message, clientIndex);
     }
 
+    // Mark the client as inactive and close the socket
     clients[clientIndex].active = false;
     closesocket(client_socket);
-    std::cout << "Closed connection with client: " << name << std::endl;
+    std::cout << "Closed connection with client: " << clients[clientIndex].name << std::endl;
 }
+
 
 int main() {
     WSADATA wsaData;
