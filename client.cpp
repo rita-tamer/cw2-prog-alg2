@@ -59,12 +59,6 @@ int main() {
     while (getline(std::cin, input)) {
         // Encrypt the message before sending
         std::string encryptedMessage = myCrypto.aesEncrypt(reinterpret_cast<const unsigned char*>(input.c_str()), input.length());
-        // Log the encrypted message for verification
-        std::cout << "Encrypted message: ";
-        for (auto ch : encryptedMessage) {
-            printf("%02X", (unsigned char)ch);  // Print each char as hex
-        }
-        std::cout << std::endl;
         send(sock, encryptedMessage.c_str(), encryptedMessage.length(), 0);
     }
 

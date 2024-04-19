@@ -168,9 +168,19 @@ void handle_client(int clientIndex) {
             std::cout << "Client disconnected: " << name << std::endl;
             break;
         }
+        // Logging encrypted data for debugging purposes (Assumes encrypted data is in a printable format)
+        std::cout << "Encrypted: ";
+        for (int i = 0; i < bytes_received; ++i) {
+            printf("%02X", (unsigned char)buffer[i]);  // Print each byte as a hex value
+        }
         std::cout << std::endl;
+
         // Decrypt the message
-        std::string message = clients[clientIndex].name + ": " + message;
+        std::string decryptedMessage = myCrypto.aesDecrypt(reinterpret_cast<unsigned char*>(buffer), bytes_received);
+        std::string message = clients[clientIndex].name + ": " + decryptedMessage;
+        std::cout << "Decrypted message: " << message << std::endl;
+
+        // Broadcast the decrypted message to other clients
         broadcast_message(message, clientIndex);
     }
 
