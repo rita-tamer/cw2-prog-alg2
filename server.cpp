@@ -158,8 +158,6 @@ void handle_client(int clientIndex) {
 
     clients[clientIndex].name = name;
     clients[clientIndex].active = true;
-    clients[clientIndex].name = name;
-    clients[clientIndex].active = true;
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));

@@ -6,6 +6,7 @@
 #include "Crypto.h"  // Include the Crypto class header
 
 #pragma comment(lib, "Ws2_32.lib")
+#define SERVER_IP "127.0.0.1"
 #define PORT "8080"
 
 Crypto myCrypto;  // Instance of the Crypto class for handling encryption
@@ -39,7 +40,7 @@ int main() {
 
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");  // Server IP address
+    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);  // Server IP address
     serverAddr.sin_port = htons(std::stoi(PORT));  // Port
     if (connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "Unable to connect to server!" << std::endl;
