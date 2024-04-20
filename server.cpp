@@ -103,6 +103,7 @@ bool validate_credentials(const std::string& email, const std::string& password,
 
 void handle_client(int clientIndex) {
     SOCKET client_socket = clients[clientIndex].socket;
+    std::cout << "Client connected: " << clientIndex << std::endl;
     char buffer[1024] = {0};
 
     send(client_socket, "Welcome to Rita's ChatAPP! Enter 1 for NEW user, 2 for RETURNING user:", 70, 0);
