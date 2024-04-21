@@ -1,22 +1,22 @@
-#include <iostream>
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include <iostream> //input/ output streams
+#include <winsock2.h> //Network communications on Windows
+#include <ws2tcpip.h> // Additional structures for network applications
 #include <string>
-#include <fstream>
-#include <thread>
-#include <mutex>
-#include <sstream>
-#include <cctype>
-#include "Crypto.h"
+#include <fstream> // file input-output
+#include <thread> // multi-threading 
+#include <mutex> // mutual exclusions
+#include <sstream> // string stream operations
+#include <cctype> // character handling
+#include "Crypto.h" // cryptographic interface header
 
-#pragma comment(lib, "Ws2_32.lib")
-#define PORT "8080"
-#define MAX_CLIENTS 100
+#pragma comment(lib, "Ws2_32.lib") //Link with Windows socket library
+#define PORT "8080" // defines the server port
+#define MAX_CLIENTS 100 //maximum number of clients
 
-Crypto myCrypto;
-std::mutex connections_mutex;
+Crypto myCrypto; // object for encryption and decryption functions
+std::mutex connections_mutex; //mutex to synchronize access to shared data
 
-struct Client {
+struct Client { //group several structures under one name
     SOCKET socket;
     std::string name;
     bool active;
@@ -24,7 +24,7 @@ struct Client {
 
 Client clients[MAX_CLIENTS] = {};
 
-std::string trim(const std::string& str) {
+std::string trim(const std::string& str) { // trims whitespaces from both end of the string
     size_t first = str.find_first_not_of(" \n\r\t\f\v");
     if (first == std::string::npos)
         return "";
@@ -32,8 +32,8 @@ std::string trim(const std::string& str) {
     return str.substr(first, (last - first + 1));
 }
 
-void broadcast_message(const std::string& message, int exclude_index) {
-    std::lock_guard<std::mutex> lock(connections_mutex);
+void broadcast_message(const std::string& message, int exclude_index) { // sends the message to all available clients except the sender
+    std::lock_guard<std::mutex> lock(connections_mutex); 
     for (int i = 0; i < MAX_CLIENTS; ++i) {
         if (clients[i].active && i != exclude_index) {
             send(clients[i].socket, message.c_str(), message.length(), 0);
@@ -41,7 +41,7 @@ void broadcast_message(const std::string& message, int exclude_index) {
     }
 }
 
-std::string caesarEncrypt(const std::string& text, int shift) {
+std::string caesarEncrypt(const std::string& text, int shift) { // caesar cipher encryption
     std::string encrypted = "";
     for (char c : text) {
         if (isalpha(c)) {
@@ -54,11 +54,11 @@ std::string caesarEncrypt(const std::string& text, int shift) {
     return encrypted;
 }
 
-std::string caesarDecrypt(const std::string& text, int shift) {
-    return caesarEncrypt(text, 26 - shift);
+std::string caesarDecrypt(const std::string& text, int shift) { // caesar cipher decryption
+    return caesarEncrypt(text, 26 - shift); 
 }
 
-bool register_user(const std::string& name, const std::string& email, const std::string& password) {
+bool register_user(const std::string& name, const std::string& email, const std::string& password) { //registers the user 
     std::ifstream check("users.txt");
     std::string line;
     while (getline(check, line)) {
@@ -66,9 +66,9 @@ bool register_user(const std::string& name, const std::string& email, const std:
         std::string storedName, storedEmail, storedPassword;
         getline(iss, storedName, '|');
         getline(iss, storedEmail, '|');
-        if (storedEmail == email) {
+        if (storedEmail == email) { //checks if the user already exists
             check.close();
-            return false;  // User already exists
+            return false; 
         }
     }
     check.close();
@@ -76,7 +76,7 @@ bool register_user(const std::string& name, const std::string& email, const std:
     std::ofstream file("users.txt", std::ios::app);
     if (!file.is_open()) return false;
 
-    std::string encryptedPassword = caesarEncrypt(password, 3);
+    std::string encryptedPassword = caesarEncrypt(password, 3); //encrypts the password upon storage 
     file << name << "|" << email << "|" << encryptedPassword << "\n";
     file.close();
     return true;
@@ -91,7 +91,7 @@ bool validate_credentials(const std::string& email, const std::string& password,
         getline(iss, storedName, '|');
         getline(iss, storedEmail, '|');
         getline(iss, storedPassword);
-        if (storedEmail == email && caesarDecrypt(storedPassword, 3) == password) {
+        if (storedEmail == email && caesarDecrypt(storedPassword, 3) == password) { 
             name = storedName;
             file.close();
             return true;
@@ -160,7 +160,7 @@ void handle_client(int clientIndex) {
     clients[clientIndex].name = name;
     clients[clientIndex].active = true;
 
-    while (true) {
+    while (true) { // message reception and broadcasting
         memset(buffer, 0, sizeof(buffer));
         int bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
         if (bytes_received <= 0) {
@@ -190,7 +190,7 @@ void handle_client(int clientIndex) {
 }
 
 
-int main() {
+int main() {     // Initialize server, bind to PORT, listen for connections
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);

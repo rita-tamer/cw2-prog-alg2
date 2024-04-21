@@ -2,7 +2,6 @@
 #define CRYPTO_H
 
 #include <iostream>
-#include <vector>
 
 class Crypto {
 public:

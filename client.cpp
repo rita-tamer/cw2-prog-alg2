@@ -1,9 +1,9 @@
-#include <iostream>
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include <iostream> //input/ output streams
+#include <winsock2.h> //Network communications on Windows
+#include <ws2tcpip.h> // Additional structures for network applications
 #include <string>
-#include <thread>
-#include "Crypto.h"  // Include the Crypto class header
+#include <thread> // multi-threading 
+#include "Crypto.h" // cryptographic interface header
 
 #pragma comment(lib, "Ws2_32.lib")
 #define SERVER_IP "127.0.0.1"
@@ -12,10 +12,10 @@
 Crypto myCrypto;  // Instance of the Crypto class for handling encryption
 
 void receive_messages(SOCKET sock) {
-    char buffer[1024];
-    while (true) {
-        memset(buffer, 0, sizeof(buffer));
-        int bytesReceived = recv(sock, buffer, sizeof(buffer), 0);
+    char buffer[1024]; //buffer to store received data
+    while (true) { // loop to continuously receive messages
+        memset(buffer, 0, sizeof(buffer)); //clears the buffer
+        int bytesReceived = recv(sock, buffer, sizeof(buffer), 0); //receives the data from the server
         if (bytesReceived > 0) {
             // Decrypt the received message
             std::string decryptedMessage = myCrypto.aesDecrypt(reinterpret_cast<unsigned char*>(buffer), bytesReceived);
@@ -28,9 +28,9 @@ void receive_messages(SOCKET sock) {
 }
 
 int main() {
-    WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
-
+    WSADATA wsaData;  // Structure to store Windows Socket implementation details
+    WSAStartup(MAKEWORD(2, 2), &wsaData);  // Initializes Winsock DLL
+    // Creates a new socket for the IPv4 protocol and stream-based communication
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET) {
         std::cerr << "Socket creation failed with error: " << WSAGetLastError() << std::endl;
@@ -38,10 +38,11 @@ int main() {
         return 1;
     }
 
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
+    sockaddr_in serverAddr;  // Structure to hold server address information
+    serverAddr.sin_family = AF_INET;  // Sets the address family to IPv4
     serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);  // Server IP address
     serverAddr.sin_port = htons(std::stoi(PORT));  // Port
+    // Attempts to connect to the specified server
     if (connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "Unable to connect to server!" << std::endl;
         closesocket(sock);
@@ -49,8 +50,8 @@ int main() {
         return 1;
     }
 
-    std::thread recvThread(receive_messages, sock);
-    recvThread.detach();
+    std::thread recvThread(receive_messages, sock); // Starts a new thread to receive messages
+    recvThread.detach(); // Detaches the thread
 
     // Initialize encryption
     myCrypto.init();  // Initialize your cryptographic settings
