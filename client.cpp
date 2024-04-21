@@ -20,6 +20,7 @@ void receive_messages(SOCKET sock) {
             // Decrypt the received message
             std::string decryptedMessage = myCrypto.aesDecrypt(reinterpret_cast<unsigned char*>(buffer), bytesReceived);
             std::cout << "Decrypted message: " << decryptedMessage << std::endl;
+
         } else {
             std::cout << "Server disconnected." << std::endl;
             break;

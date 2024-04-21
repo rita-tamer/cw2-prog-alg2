@@ -104,6 +104,7 @@ bool validate_credentials(const std::string& email, const std::string& password,
 void handle_client(int clientIndex) {
     SOCKET client_socket = clients[clientIndex].socket;
     std::cout << "Client connected: " << clientIndex << std::endl;
+    std::cout << clients[clientIndex].name << " is connected " << std::endl;
     char buffer[1024] = {0};
 
     send(client_socket, "Welcome to Rita's ChatAPP! Enter 1 for NEW user, 2 for RETURNING user:", 70, 0);
@@ -174,12 +175,8 @@ void handle_client(int clientIndex) {
         }
         std::cout << std::endl;
 
-        // Decrypt the message
-        std::string decryptedMessage = myCrypto.aesDecrypt(reinterpret_cast<unsigned char*>(buffer), bytes_received);
-        std::string message = clients[clientIndex].name + ": " + decryptedMessage;
-        std::cout << "Decrypted message: " << message << std::endl;
+        std::string message = clients[clientIndex].name + ": " + std::string(buffer, bytes_received);
 
-        // Broadcast the decrypted message to other clients
         broadcast_message(message, clientIndex);
     }
 
