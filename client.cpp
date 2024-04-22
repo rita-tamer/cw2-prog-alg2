@@ -11,7 +11,7 @@
 
 Crypto myCrypto;  // Instance of the Crypto class for handling encryption
 
-void receive_messages(SOCKET sock) {
+void receive_messages(SOCKET sock) { // Listens for and processes incoming messages from the server, ensuring that the client receives real-time updates during chat sessions, decrypts the received message using AES back into plaintext  through a calculated key based on the value of the length of the message
     char buffer[1024]; //buffer to store received data
     while (true) { // loop to continuously receive messages
         memset(buffer, 0, sizeof(buffer)); //clears the buffer

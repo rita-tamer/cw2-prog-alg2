@@ -7,13 +7,11 @@
 #include <mutex> // mutual exclusions
 #include <sstream> // string stream operations
 #include <cctype> // character handling
-#include "Crypto.h" // cryptographic interface header
 
 #pragma comment(lib, "Ws2_32.lib") //Link with Windows socket library
 #define PORT "8080" // defines the server port
 #define MAX_CLIENTS 100 //maximum number of clients
 
-Crypto myCrypto; // object for encryption and decryption functions
 std::mutex connections_mutex; //mutex to synchronize access to shared data
 
 struct Client { //group several structures under one name
@@ -24,7 +22,7 @@ struct Client { //group several structures under one name
 
 Client clients[MAX_CLIENTS] = {};
 
-std::string trim(const std::string& str) { // trims whitespaces from both end of the string
+std::string trim(const std::string& str) { // trims whitespaces from both end of the string, cleans up strings before processing used within different functions
     size_t first = str.find_first_not_of(" \n\r\t\f\v");
     if (first == std::string::npos)
         return "";
@@ -32,11 +30,11 @@ std::string trim(const std::string& str) { // trims whitespaces from both end of
     return str.substr(first, (last - first + 1));
 }
 
-void broadcast_message(const std::string& message, int exclude_index) { // sends the message to all available clients except the sender
+void broadcast_message(const std::string& message, int exclude_index) { // enable public message distribution within the network by sending the message to all active clients except for the sender through mutual exclusion.
     std::lock_guard<std::mutex> lock(connections_mutex); 
     for (int i = 0; i < MAX_CLIENTS; ++i) {
         if (clients[i].active && i != exclude_index) {
-            send(clients[i].socket, message.c_str(), message.length(), 0);
+            send(clients[i].socket, message.c_str(), message.length(), 0); 
         }
     }
 }
@@ -58,7 +56,7 @@ std::string caesarDecrypt(const std::string& text, int shift) { // caesar cipher
     return caesarEncrypt(text, 26 - shift); 
 }
 
-bool register_user(const std::string& name, const std::string& email, const std::string& password) { //registers the user 
+bool register_user(const std::string& name, const std::string& email, const std::string& password) { //matching the entered password to the one stored on the database by decrypting the registered value and comparing it to the inputted value. Performing proper authentication of users and welcoming the user by their saved name, they are requested to enter their name, email address & password 
     std::ifstream check("users.txt");
     std::string line;
     while (getline(check, line)) {
@@ -82,7 +80,7 @@ bool register_user(const std::string& name, const std::string& email, const std:
     return true;
 }
 
-bool validate_credentials(const std::string& email, const std::string& password, std::string& name) {
+bool validate_credentials(const std::string& email, const std::string& password, std::string& name) { // matching the entered password to the one stored on the database by decrypting the registered value and comparing it to the inputted value. Performing proper authentication of users and welcoming the user by their saved name. 
     std::ifstream file("users.txt");
     std::string line;
     while (getline(file, line)) {
@@ -101,7 +99,7 @@ bool validate_credentials(const std::string& email, const std::string& password,
     return false;
 }
 
-void handle_client(int clientIndex) {
+void handle_client(int clientIndex) { //Merging both the user creation and user login into a singular function, this is where this function comes into play, after authenticating the user it maintains an active session and processes message reception and broadcasting.
     SOCKET client_socket = clients[clientIndex].socket;
     std::cout << "Client connected: " << clientIndex << std::endl;
     std::cout << clients[clientIndex].name << " is connected " << std::endl;
@@ -168,7 +166,7 @@ void handle_client(int clientIndex) {
             std::cout << "Client disconnected: " << name << std::endl;
             break;
         }
-        // Logging encrypted data for debugging purposes (Assumes encrypted data is in a printable format)
+        // Logging encrypted data  
         std::cout << "Encrypted: ";
         for (int i = 0; i < bytes_received; ++i) {
             printf("%02X", (unsigned char)buffer[i]);  // Print each byte as a hex value
@@ -186,8 +184,7 @@ void handle_client(int clientIndex) {
     std::cout << "Closed connection with client: " << clients[clientIndex].name << std::endl;
 }
 
-
-int main() {     // Initialize server, bind to PORT, listen for connections
+int main() {     // initializes the server, sets up the connections through sockets and enters a loop to accept client connections.
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);
